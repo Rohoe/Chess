@@ -23,8 +23,7 @@ class Player
 end
 
 class Piece
-	attr_reader :name
-	attr_accessor :status, :color, :position
+	attr_accessor :name, :status, :color, :position
 
 	def initialize(name, position, color)
 		@name = name
@@ -134,40 +133,177 @@ class Board
 		puts
 	end
 
-	#returns array of 1s and 0s corresponding to legal/illegal moves
+	def on_board?(x,y)
+		x >= 0 && x <= 7 && y >= 0 && y <= 7
+	end
+
+	#returns array of trues and nils corresponding to legal/illegal moves
 	def legal_move(piece)
 		possible_moves = empty_state
+		x = piece.position.x
+		y = piece.position.y
 		case piece.name
 		when :pawn
 			if piece.color == :white
-				x = piece.position.x
-				y = piece.position.y
+				possible_moves[x-1][y-1] = true if @state[x][y].nil? && x < 8
+				possible_moves[x-1][y-1] = true if @state[x-2][y].nil? && x > 1
 			else #black
+				possible_moves[x-1][y-1] = true if @state[x][y-2].nil? && x < 8
+				possible_moves[x-1][y-1] = true if @state[x-2][y-2].nil? && x > 1
 			end
 		when :rook
-			print "♖ " if piece.color == :white
-			print "♜ " if piece.color == :black
+			#up-down
+			up_bound = y
+			low_bound = y-2
+			while up_bound <= 7 && @state[x-1][up_bound].nil?
+				possible_moves[x-1][up_bound] = true
+				up_bound += 1
+			end
+			while low_bound >= 0 && @state[x-1][low_bound].nil?
+				possible_moves[x-1][low_bound] = true
+				low_bound -= 1
+			end
+			#left-right
+			left_bound = x - 2
+			right_bound = x
+			while right_bound <= 7 && @state[right_bound][y-1].nil?
+				possible_moves[right_bound][y-1] = true
+				right_bound += 1
+			end
+			while left_bound >= 0 && @state[left_bound][y-1].nil?
+				possible_moves[left_bound][y-1] = true
+				left_bound -= 1
+			end
 		when :bishop
-			print "♗ " if piece.color == :white
-			print "♝ " if piece.color == :black
+			up_bound_y = y
+			low_bound_y = y-2
+			up_bound_x = x
+			low_bound_x = x-2
+			while low_bound_x >= 0 && up_bound_y <= 7  && @state[low_bound_x][up_bound_y].nil?
+				possible_moves[low_bound_x][up_bound_y] = true
+				low_bound_x += -1
+				up_bound_y += 1
+			end
+			low_bound_x = x-2
+			up_bound_y = y
+			while low_bound_x >= 0 && low_bound_y >= 0  && @state[low_bound_x][low_bound_y].nil?
+				possible_moves[low_bound_x][low_bound_y] = true
+				low_bound_x += -1
+				low_bound_y += -1
+			end
+			low_bound_y = y-2
+			while up_bound_x <= 7 && low_bound_y >= 0 && @state[up_bound_x][low_bound_y].nil?
+				possible_moves[up_bound_x][low_bound_y] = true
+				up_bound_x += 1
+				low_bound_y += -1
+			end
+			up_bound_x = x
+			while up_bound_x <= 7 && up_bound_y <= 7 && @state[up_bound_x][up_bound_y].nil?
+				possible_moves[up_bound_x][up_bound_y] = true
+				up_bound_x += 1
+				up_bound_y += 1
+			end
 		when :knight
-			print "♘ " if piece.color == :white
-			print "♞ " if piece.color == :black
+			for i in -2..2
+				for j in -2..2
+					if i.abs + j.abs == 3
+						if on_board?(x-1-i,y-1-j)
+							possible_moves[x-1-i][y-1-j] = true
+						end
+					end
+				end
+			end
+			# if on_board?(x-2,y+1)
+			# 	possible_moves[x-2][y+1] = true
+			# end
+			# possible_moves[x-3][y] = true if on_board?(x-3,y)
+			# possible_moves[x-2][y-3] = true if on_board?(x-2,y-3)
+			# possible_moves[x-3][y-2] = true if on_board?(x-3,y-2)
+			# possible_moves[x][y+1] = true if on_board?(x,y+1)
+			# possible_moves[x+1][y] = true if on_board?(x+1,y)
+			# possible_moves[x][y-3] = true if on_board?(x,y-3)
+			# possible_moves[x+1][y-2] = true if on_board?(x+1,y-2)
 		when :king
-			print "♔ " if piece.color == :white
-			print "♚ " if piece.color == :black
+			for i in -1..1
+				for j in -1..1
+					possible_moves[x-1-i][y-1-j] = true if on_board?(x-1-i,y-1-j)
+				end
+			end
+			possible_moves[x-1][y-1]= nil
 		when :queen
-			print "♕ " if piece.color == :white
-			print "♛ " if piece.color == :black
+			#up-down
+			up_bound = y
+			low_bound = y-2
+			while up_bound <= 7 && @state[x-1][up_bound].nil?
+				possible_moves[x-1][up_bound] = true
+				up_bound += 1
+			end
+			while low_bound >= 0 && @state[x-1][low_bound].nil?
+				possible_moves[x-1][low_bound] = true
+				low_bound -= 1
+			end
+			#left-right
+			left_bound = x - 2
+			right_bound = x
+			while right_bound <= 7 && @state[right_bound][y-1].nil?
+				possible_moves[right_bound][y-1] = true
+				right_bound += 1
+			end
+			while left_bound >= 0 && @state[left_bound][y-1].nil?
+				possible_moves[left_bound][y-1] = true
+				left_bound -= 1
+			end
+
+			up_bound_y = y
+			low_bound_y = y-2
+			up_bound_x = x
+			low_bound_x = x-2
+			while low_bound_x >= 0 && up_bound_y <= 7  && @state[low_bound_x][up_bound_y].nil?
+				possible_moves[low_bound_x][up_bound_y] = true
+				low_bound_x += -1
+				up_bound_y += 1
+			end
+			low_bound_x = x-2
+			up_bound_y = y
+			while low_bound_x >= 0 && low_bound_y >= 0  && @state[low_bound_x][low_bound_y].nil?
+				possible_moves[low_bound_x][low_bound_y] = true
+				low_bound_x += -1
+				low_bound_y += -1
+			end
+			low_bound_y = y-2
+			while up_bound_x <= 7 && low_bound_y >= 0 && @state[up_bound_x][low_bound_y].nil?
+				possible_moves[up_bound_x][low_bound_y] = true
+				up_bound_x += 1
+				low_bound_y += -1
+			end
+			up_bound_x = x
+			while up_bound_x <= 7 && up_bound_y <= 7 && @state[up_bound_x][up_bound_y].nil?
+				possible_moves[up_bound_x][up_bound_y] = true
+				up_bound_x += 1
+				up_bound_y += 1
+			end
 		else
-			print "* "
+			raise ArgumentError
 		end
+		possible_moves
 	end
 
-	def merge_legal_moves
+	def merge_legal_moves(l1,l2)
+		new_moves = l1
+		for i in 0..7
+			for j in 0..7
+				new_moves[i][j] = true if l1[i][j] || l2[i][j]
+			end
+		end
+		new_moves
 	end
 
 	def legal_moves(player)
+		legal = empty_state
+		player.pieces.each { |piece|
+			legal = merge_legal_moves(legal,legal_move(piece))
+		}
+		legal
 	end
 end
 
