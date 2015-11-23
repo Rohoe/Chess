@@ -365,6 +365,23 @@ class Board
 		legal
 	end
 
+	def pawn_upgrade(piece)
+		valid_pieces = [:rook, :bishop, :knight, :queen]
+		begin
+			puts "What would you like to upgrade your pawn into?"
+			puts "Rook, bishop, knight, queen"
+			new_name = gets.chomp.to_sym
+			if valid_pieces.include?(new_name)
+				piece.name = new_name
+			else
+				raise ArgumentError
+			end
+		rescue
+			puts "Invald input. Try again."
+			retry
+		end
+	end
+
 	#throws an error for invalid moves
 	def move_piece(c1,c2)
 		begin
@@ -379,8 +396,14 @@ class Board
 						@state[c2.x-1][c2.y-1].status = :captured
 					end
 					#Move piece
-					@state[c2.x-1][c2.y-1] = @state[c1.x-1][c1.y-1]
+					@state[c2.x-1][c2.y-1] = piece
+					piece.position = Coord.new(c2.x,c2.y)
 					@state[c1.x-1][c1.y-1] = nil
+					#pawn upgrade
+					if piece.name == :pawn
+						pawn_upgrade(piece) if piece.color == :white && c2.y == 7
+						pawn_upgrade(piece) if piece.color == :black && c2.y == 0
+					end
 				else
 					raise ArgumentError, "Can't move there"
 				end
