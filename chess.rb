@@ -358,7 +358,9 @@ class Board
 	def legal_moves(player)
 		legal = empty_state
 		player.pieces.each { |piece|
-			legal = merge_legal_moves(legal,legal_move(piece))
+			if piece.status == :alive
+				legal = merge_legal_moves(legal,legal_move(piece))
+			end
 		}
 		legal
 	end
