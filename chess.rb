@@ -28,13 +28,14 @@ class Player
 end
 
 class Piece
-	attr_accessor :name, :status, :color, :position
+	attr_accessor :name, :status, :color, :position, :moved
 
 	def initialize(name, position, color)
 		@name = name
 		@position = position
 		@status = :alive
 		@color = color
+		@moved = false
 	end
 
 	def Piece.starting_pieces(color)
@@ -151,7 +152,7 @@ class Board
 		x >= 0 && x <= 7 && y >= 0 && y <= 7
 	end
 
-	def legal_move(piece,game_state)
+	def legal_move(piece,game_state,check_castling=true)
 		possible_moves = empty_state
 		x = piece.position.x
 		y = piece.position.y
@@ -294,6 +295,40 @@ class Board
 				end
 			end
 			possible_moves[x-1][y-1]= nil
+			if check_castling
+				return possible_moves if piece.moved
+				#white
+				if piece.color == :white
+					threatened_space = legal_moves(@black_player,game_state,false)
+					y_coord = 0
+				else
+					threatened_space = legal_moves(@white_player,game_state,false)
+					y_coord = 7
+				end
+				return possible_moves if threatened_space[x-1][y-1]
+				castle_possible = true
+				#kingside
+				k_rook = game_state[7][y_coord]
+				if !k_rook.nil? && k_rook.name == :rook && !k_rook.moved
+					for x in 5..6
+						castle_possible=false if !game_state[x][y_coord].nil? || threatened_space[x][y_coord]
+					end
+					possible_moves[6][y_coord] = true if castle_possible
+				end
+				#queenside
+				castle_possible = true
+				q_rook = game_state[0][y_coord]
+				if !q_rook.nil? && q_rook.name == :rook && !q_rook.moved
+					for x in 1..3
+						castle_possible = false if !game_state[x][y_coord].nil?
+						if x > 1
+							castle_possible = false if threatened_space[x][y_coord]
+						end
+					end
+					possible_moves[2][y_coord] = true if castle_possible
+				end
+			end
+			possible_moves
 		when :queen
 			#up-down
 			up_bound = y
@@ -388,11 +423,11 @@ class Board
 		new_moves
 	end
 
-	def legal_moves(player,game_state)
+	def legal_moves(player,game_state,check_castling=true)
 		legal = empty_state
 		player.pieces.each { |piece|
 			if piece.status == :alive
-				legal = merge_legal_moves(legal,legal_move(piece,game_state))
+				legal = merge_legal_moves(legal,legal_move(piece,game_state,check_castling))
 			end
 		}
 		legal
@@ -428,10 +463,41 @@ class Board
 					game_state[c2.x-1][c2.y-1].status = :captured
 				end
 				#Move piece
-				old_piece = game_state[c2.x-1][c2.y-1]
-				game_state[c2.x-1][c2.y-1] = piece
-				piece.position = Coord.new(c2.x,c2.y)
-				game_state[c1.x-1][c1.y-1] = nil
+
+				#Castling
+				y_coord = 0 if piece.color == :white
+				y_coord = 7 if piece.color == :black
+				#Kingside
+				if piece.name == :king && (c2.x-c1.x) > 1
+					piece.position = Coord.new(c2.x,c2.y)
+					piece.moved = true
+					rook = game_state[7][y_coord]
+					rook.position = Coord.new(c2.x-1,c2.y)
+					rook.moved = true
+					game_state[6][y_coord] = piece
+					game_state[5][y_coord] = rook
+					game_state[c1.x-1][c1.y-1] = nil
+					game_state[7][y_coord] = nil
+				#Queenside
+				elsif piece.name == :king && (c1.x-c2.x) > 1
+					piece.position = Coord.new(c2.x,c2.y)
+					piece.moved = true
+					rook = game_state[0][y_coord]
+					rook.position = Coord.new(c2.x+1,c2.y)
+					rook.moved = true
+					game_state[2][y_coord] = piece
+					game_state[3][y_coord] = rook
+					game_state[c1.x-1][c1.y-1] = nil
+					game_state[0][y_coord] = nil
+				else #move normally
+					old_piece = game_state[c2.x-1][c2.y-1]
+					game_state[c2.x-1][c2.y-1] = piece
+					piece.position = Coord.new(c2.x,c2.y)
+					pre_moved = piece.moved
+					piece.moved = true
+					game_state[c1.x-1][c1.y-1] = nil
+				end
+
 				#if under check, reverse moves and raise ArgumentError
 				black_pieces = []
 				white_pieces = []
@@ -447,8 +513,6 @@ class Board
 				white_player = Player.new(:white,"White",white_pieces)
 				if piece.color == :white
 					pos = white_player.pieces.select{|piece| piece.name == :king}.first.position
-					#ERROR is here. the hypothetical state pieces have different pointers so the legal moves here
-					#is checking for legal moves from the actual game state.
 					if legal_moves(black_player,game_state)[pos.x-1][pos.y-1] == true
 						if !old_piece.nil?
 							old_piece.status = :alive
@@ -456,17 +520,19 @@ class Board
 						game_state[c2.x-1][c2.y-1] = old_piece
 						game_state[c1.x-1][c1.y-1] = piece
 						piece.position = Coord.new(c1.x,c1.y)
+						piece.moved = pre_moved
 						raise ArgumentError, "Can't do that. You're under check!"
 					end
 				else
-					pos = @black_player.pieces.select{|piece| piece.name == :king}.first.position
-					if legal_moves(@white_player,game_state)[pos.x-1][pos.y-1] == true
+					pos = black_player.pieces.select{|piece| piece.name == :king}.first.position
+					if legal_moves(white_player,game_state)[pos.x-1][pos.y-1] == true
 						if !old_piece.nil?
 							old_piece.status = :alive
 						end
 						game_state[c2.x-1][c2.y-1] = old_piece
 						game_state[c1.x-1][c1.y-1] = piece
 						piece.position = Coord.new(c1.x,c1.y)
+						piece.moved = pre_moved
 						raise ArgumentError, "Can't do that. You're under check!"
 					end
 				end

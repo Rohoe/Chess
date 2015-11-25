@@ -1,0 +1,335 @@
+--- !ruby/object:Game
+board: !ruby/object:Board
+  white_player: &32 !ruby/object:Player
+    color: :white
+    name: White
+    pieces:
+    - &2 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 1
+        y: 2
+      status: :alive
+      color: :white
+      moved: false
+    - &1 !ruby/object:Piece
+      name: :rook
+      position: !ruby/object:Coord
+        x: 1
+        y: 1
+      status: :alive
+      color: :white
+      moved: false
+    - !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 2
+        y: 2
+      status: :captured
+      color: :white
+      moved: false
+    - &9 !ruby/object:Piece
+      name: :knight
+      position: !ruby/object:Coord
+        x: 3
+        y: 3
+      status: :alive
+      color: :white
+      moved: true
+    - &8 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 3
+        y: 2
+      status: :alive
+      color: :white
+      moved: false
+    - &29 !ruby/object:Piece
+      name: :bishop
+      position: !ruby/object:Coord
+        x: 8
+        y: 6
+      status: :alive
+      color: :white
+      moved: true
+    - &13 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 4
+        y: 4
+      status: :alive
+      color: :white
+      moved: true
+    - &12 !ruby/object:Piece
+      name: :queen
+      position: !ruby/object:Coord
+        x: 4
+        y: 3
+      status: :alive
+      color: :white
+      moved: true
+    - &16 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 5
+        y: 2
+      status: :alive
+      color: :white
+      moved: false
+    - &15 !ruby/object:Piece
+      name: :king
+      position: !ruby/object:Coord
+        x: 5
+        y: 1
+      status: :alive
+      color: :white
+      moved: false
+    - &20 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 6
+        y: 2
+      status: :alive
+      color: :white
+      moved: false
+    - &19 !ruby/object:Piece
+      name: :bishop
+      position: !ruby/object:Coord
+        x: 6
+        y: 1
+      status: :alive
+      color: :white
+      moved: false
+    - &24 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 7
+        y: 2
+      status: :alive
+      color: :white
+      moved: false
+    - &23 !ruby/object:Piece
+      name: :knight
+      position: !ruby/object:Coord
+        x: 7
+        y: 1
+      status: :alive
+      color: :white
+      moved: false
+    - &28 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 8
+        y: 4
+      status: :alive
+      color: :white
+      moved: true
+    - &27 !ruby/object:Piece
+      name: :rook
+      position: !ruby/object:Coord
+        x: 8
+        y: 1
+      status: :alive
+      color: :white
+      moved: false
+    check: false
+  black_player: &33 !ruby/object:Player
+    color: :black
+    name: Black
+    pieces:
+    - &3 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 1
+        y: 7
+      status: :alive
+      color: :black
+      moved: false
+    - &4 !ruby/object:Piece
+      name: :rook
+      position: !ruby/object:Coord
+        x: 1
+        y: 8
+      status: :alive
+      color: :black
+      moved: false
+    - &6 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 2
+        y: 7
+      status: :alive
+      color: :black
+      moved: false
+    - &7 !ruby/object:Piece
+      name: :knight
+      position: !ruby/object:Coord
+        x: 2
+        y: 8
+      status: :alive
+      color: :black
+      moved: false
+    - &10 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 3
+        y: 7
+      status: :alive
+      color: :black
+      moved: false
+    - &11 !ruby/object:Piece
+      name: :bishop
+      position: !ruby/object:Coord
+        x: 3
+        y: 8
+      status: :alive
+      color: :black
+      moved: false
+    - &14 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 4
+        y: 5
+      status: :alive
+      color: :black
+      moved: true
+    - &5 !ruby/object:Piece
+      name: :queen
+      position: !ruby/object:Coord
+        x: 2
+        y: 3
+      status: :alive
+      color: :black
+      moved: true
+    - &17 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 5
+        y: 7
+      status: :alive
+      color: :black
+      moved: false
+    - &18 !ruby/object:Piece
+      name: :king
+      position: !ruby/object:Coord
+        x: 5
+        y: 8
+      status: :alive
+      color: :black
+      moved: false
+    - &21 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 6
+        y: 7
+      status: :alive
+      color: :black
+      moved: false
+    - &22 !ruby/object:Piece
+      name: :bishop
+      position: !ruby/object:Coord
+        x: 6
+        y: 8
+      status: :alive
+      color: :black
+      moved: false
+    - &25 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 7
+        y: 7
+      status: :alive
+      color: :black
+      moved: false
+    - &26 !ruby/object:Piece
+      name: :knight
+      position: !ruby/object:Coord
+        x: 7
+        y: 8
+      status: :alive
+      color: :black
+      moved: false
+    - &30 !ruby/object:Piece
+      name: :pawn
+      position: !ruby/object:Coord
+        x: 8
+        y: 7
+      status: :alive
+      color: :black
+      moved: false
+    - &31 !ruby/object:Piece
+      name: :rook
+      position: !ruby/object:Coord
+        x: 8
+        y: 8
+      status: :alive
+      color: :black
+      moved: false
+    check: false
+  state:
+  - - *1
+    - *2
+    - 
+    - 
+    - 
+    - 
+    - *3
+    - *4
+  - - 
+    - 
+    - *5
+    - 
+    - 
+    - 
+    - *6
+    - *7
+  - - 
+    - *8
+    - *9
+    - 
+    - 
+    - 
+    - *10
+    - *11
+  - - 
+    - 
+    - *12
+    - *13
+    - *14
+    - 
+    - 
+    - 
+  - - *15
+    - *16
+    - 
+    - 
+    - 
+    - 
+    - *17
+    - *18
+  - - *19
+    - *20
+    - 
+    - 
+    - 
+    - 
+    - *21
+    - *22
+  - - *23
+    - *24
+    - 
+    - 
+    - 
+    - 
+    - *25
+    - *26
+  - - *27
+    - 
+    - 
+    - *28
+    - 
+    - *29
+    - *30
+    - *31
+current_player: *32
+other_player: *33
