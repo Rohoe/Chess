@@ -101,8 +101,8 @@ class Board
 	def print_state(to_highlight=nil)
 		to_print = @state.transpose
 		to_print.reverse.each_with_index {|row, i|
-			alpha_headers = 'a'..'h'
-			print alpha_headers.to_a[alpha_headers.to_a.length - i - 1] + " "
+			int_headers = '1'..'8'
+			print int_headers.to_a[int_headers.to_a.length - i - 1] + " "
 			row.each_with_index {|piece,j|
 				if piece.nil?
 					if !to_highlight.nil?
@@ -143,7 +143,7 @@ class Board
 			puts
 		}
 		print "  "
-		int_headings = (1..8).to_a.each{|i| print "#{i} "}
+		('a'..'h').to_a.each{|i| print "#{i} "}
 		puts
 	end
 
@@ -531,8 +531,8 @@ class Game
 
 	def choose_coord(input)
 		if ('a'..'z').cover?(input[0]) && (input[1].to_i.is_a? Integer) && input.length == 2
-			y = char_to_i(input[0])
-			x = input[1].to_i
+			x = char_to_i(input[0])
+			y = input[1].to_i
 			raise ArgumentError, "Coord not on board" if !@board.on_board?(x-1,y-1)
 		else
 			raise ArgumentError, "Invalid input. try again"
@@ -668,7 +668,7 @@ class Game
 		loop do
 			@board.print_state
 			if checkmate?
-				puts "Game over! #{@other_player.name} wins."
+				puts "Checkmate! #{@other_player.name} wins."
 				break
 			end
 			puts "You're under check!" if check?(@board.state)
