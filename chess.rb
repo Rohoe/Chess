@@ -162,6 +162,10 @@ class Board
 				if on_board?(x-1,y) && game_state[x-1][y].nil?
 					possible_moves[x-1][y] = true
 				end
+				#first move
+				if y == 2 && game_state[x-1][y+1].nil?
+					possible_moves[x-1][y+1] = true
+				end
 				#diagonals
 				if on_board?(x,y)
 					possible_moves[x][y] = true if !game_state[x][y].nil? && !game_state[x][y].color != piece.color
@@ -173,6 +177,10 @@ class Board
 				#forward
 				if on_board?(x-1,y-2) && game_state[x-1][y-2].nil?
 					possible_moves[x-1][y-2] = true
+				end
+				#first_move
+				if y == 7 && game_state[x-1][y-3].nil?
+					possible_moves[x-1][y-3] = true
 				end
 				#diagonals
 				if on_board?(x,y-2)
