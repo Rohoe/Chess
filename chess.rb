@@ -14,10 +14,14 @@ class Player
 	attr_reader :color, :name
 	attr_accessor	:pieces, :check
 
-	def initialize (color, name)
+	def initialize (color, name, pieces=nil)
 		@color = color
 		@name = name
-		@pieces = Piece.starting_pieces(color)
+		if pieces.nil?
+			@pieces = Piece.starting_pieces(color)
+		else
+			@pieces = pieces
+		end
 		@check = false
 	end
 
@@ -94,14 +98,23 @@ class Board
 		init
 	end
 
-	def print_state
+	def print_state(to_highlight=nil)
 		to_print = @state.transpose
 		to_print.reverse.each_with_index {|row, i|
 			alpha_headers = 'a'..'h'
 			print alpha_headers.to_a[alpha_headers.to_a.length - i - 1] + " "
-			row.each {|piece|
+			row.each_with_index {|piece,j|
 				if piece.nil?
-					print "* "
+					if !to_highlight.nil?
+						pos = to_highlight.position
+						if legal_move(to_highlight,@state)[j][7-i]
+							print "@ "
+						else
+							print "* "
+						end
+					else
+						print "* "
+					end
 				else
 					case piece.name
 					when :pawn
@@ -138,8 +151,7 @@ class Board
 		x >= 0 && x <= 7 && y >= 0 && y <= 7
 	end
 
-	#returns array of trues and nils corresponding to legal/illegal moves
-	def legal_move(piece)
+	def legal_move(piece,game_state)
 		possible_moves = empty_state
 		x = piece.position.x
 		y = piece.position.y
@@ -147,64 +159,64 @@ class Board
 		when :pawn
 			if piece.color == :white
 				#forward
-				if on_board?(x-1,y) && @state[x-1][y].nil?
+				if on_board?(x-1,y) && game_state[x-1][y].nil?
 					possible_moves[x-1][y] = true
 				end
 				#diagonals
 				if on_board?(x,y)
-					possible_moves[x][y] = true if !@state[x][y].nil? && !@state[x][y].color != piece.color
+					possible_moves[x][y] = true if !game_state[x][y].nil? && !game_state[x][y].color != piece.color
 				end
 				if on_board?(x-2,y)
-					possible_moves[x-2][y] = true if !@state[x-2][y].nil? && !@state[x-2][y].color != piece.color
+					possible_moves[x-2][y] = true if !game_state[x-2][y].nil? && !game_state[x-2][y].color != piece.color
 				end
 			else #black
 				#forward
-				if on_board?(x-1,y-2) && @state[x-1][y-2].nil?
+				if on_board?(x-1,y-2) && game_state[x-1][y-2].nil?
 					possible_moves[x-1][y-2] = true
 				end
 				#diagonals
 				if on_board?(x,y-2)
-					possible_moves[x][y-2] = true if !@state[x][y-2].nil? && !@state[x][y-2].color != piece.color
+					possible_moves[x][y-2] = true if !game_state[x][y-2].nil? && !game_state[x][y-2].color != piece.color
 				end
 				if on_board?(x-2,y-2)
-					possible_moves[x-2][y-2] = true if !@state[x-2][y-2].nil? && !@state[x-2][y-2].color != piece.color
+					possible_moves[x-2][y-2] = true if !game_state[x-2][y-2].nil? && !game_state[x-2][y-2].color != piece.color
 				end
 			end
 
-		#MUST replace @state[x][y] with on_board?(x,y)... Same with bishop.
+		#MUST replace game_state[x][y] with on_board?(x,y)... Same with bishop.
 		when :rook
 			#up-down
 			up_bound = y
 			low_bound = y-2
-			while up_bound <= 7 && @state[x-1][up_bound].nil?
+			while up_bound <= 7 && game_state[x-1][up_bound].nil?
 				possible_moves[x-1][up_bound] = true
 				up_bound += 1
 			end
-			if on_board?(x-1,up_bound) && !@state[x-1][up_bound].nil? && @state[x-1][up_bound].color != piece.color
+			if on_board?(x-1,up_bound) && !game_state[x-1][up_bound].nil? && game_state[x-1][up_bound].color != piece.color
 				possible_moves[x-1][up_bound] = true
 			end
-			while low_bound >= 0 && @state[x-1][low_bound].nil?
+			while low_bound >= 0 && game_state[x-1][low_bound].nil?
 				possible_moves[x-1][low_bound] = true
 				low_bound -= 1
 			end
-			if on_board?(x-1,low_bound) && !@state[x-1][low_bound].nil? && @state[x-1][low_bound].color != piece.color
+			if on_board?(x-1,low_bound) && !game_state[x-1][low_bound].nil? && game_state[x-1][low_bound].color != piece.color
 				possible_moves[x-1][low_bound] = true
 			end
 			#left-right
 			left_bound = x - 2
 			right_bound = x
-			while right_bound <= 7 && @state[right_bound][y-1].nil?
+			while right_bound <= 7 && game_state[right_bound][y-1].nil?
 				possible_moves[right_bound][y-1] = true
 				right_bound += 1
 			end
-			if on_board?(right_bound,y-1) && !@state[right_bound][y-1].nil? && @state[right_bound][y-1].color != piece.color
+			if on_board?(right_bound,y-1) && !game_state[right_bound][y-1].nil? && game_state[right_bound][y-1].color != piece.color
 				possible_moves[right_bound][y-1] = true
 			end
-			while left_bound >= 0 && @state[left_bound][y-1].nil?
+			while left_bound >= 0 && game_state[left_bound][y-1].nil?
 				possible_moves[left_bound][y-1] = true
 				left_bound -= 1
 			end
-			if on_board?(left_bound,y-1) && !@state[left_bound][y-1].nil? && @state[left_bound][y-1].color != piece.color
+			if on_board?(left_bound,y-1) && !game_state[left_bound][y-1].nil? && game_state[left_bound][y-1].color != piece.color
 				possible_moves[left_bound][y-1] = true
 			end
 		when :bishop
@@ -212,42 +224,42 @@ class Board
 			low_bound_y = y-2
 			up_bound_x = x
 			low_bound_x = x-2
-			while low_bound_x >= 0 && up_bound_y <= 7  && @state[low_bound_x][up_bound_y].nil?
+			while low_bound_x >= 0 && up_bound_y <= 7  && game_state[low_bound_x][up_bound_y].nil?
 				possible_moves[low_bound_x][up_bound_y] = true
 				low_bound_x += -1
 				up_bound_y += 1
 			end
-			if on_board?(low_bound_x,up_bound_y) && !@state[low_bound_x][up_bound_y].nil? && @state[low_bound_x][up_bound_y].color != piece.color
+			if on_board?(low_bound_x,up_bound_y) && !game_state[low_bound_x][up_bound_y].nil? && game_state[low_bound_x][up_bound_y].color != piece.color
 				possible_moves[low_bound_x][up_bound_y] = true
 			end
 			low_bound_x = x-2
 			up_bound_y = y
-			while low_bound_x >= 0 && low_bound_y >= 0  && @state[low_bound_x][low_bound_y].nil?
+			while low_bound_x >= 0 && low_bound_y >= 0  && game_state[low_bound_x][low_bound_y].nil?
 				possible_moves[low_bound_x][low_bound_y] = true
 				low_bound_x += -1
 				low_bound_y += -1
 			end
-			if on_board?(low_bound_x,low_bound_y) && !@state[low_bound_x][low_bound_y].nil? && @state[low_bound_x][low_bound_y].color != piece.color
+			if on_board?(low_bound_x,low_bound_y) && !game_state[low_bound_x][low_bound_y].nil? && game_state[low_bound_x][low_bound_y].color != piece.color
 				possible_moves[low_bound_x][low_bound_y] = true
 			end
 			up_bound_x = x
 			low_bound_y = y-2
-			while up_bound_x <= 7 && low_bound_y >= 0 && @state[up_bound_x][low_bound_y].nil?
+			while up_bound_x <= 7 && low_bound_y >= 0 && game_state[up_bound_x][low_bound_y].nil?
 				possible_moves[up_bound_x][low_bound_y] = true
 				up_bound_x += 1
 				low_bound_y += -1
 			end
-			if on_board?(up_bound_x,low_bound_y) && !@state[up_bound_x][low_bound_y].nil? && @state[up_bound_x][low_bound_y].color != piece.color
+			if on_board?(up_bound_x,low_bound_y) && !game_state[up_bound_x][low_bound_y].nil? && game_state[up_bound_x][low_bound_y].color != piece.color
 				possible_moves[up_bound_x][low_bound_y] = true
 			end
 			up_bound_x = x
 			up_bound_y = y
-			while up_bound_x <= 7 && up_bound_y <= 7 && @state[up_bound_x][up_bound_y].nil?
+			while up_bound_x <= 7 && up_bound_y <= 7 && game_state[up_bound_x][up_bound_y].nil?
 				possible_moves[up_bound_x][up_bound_y] = true
 				up_bound_x += 1
 				up_bound_y += 1
 			end
-			if on_board?(up_bound_x,up_bound_y) && !@state[up_bound_x][up_bound_y].nil? && @state[up_bound_x][up_bound_y].color != piece.color
+			if on_board?(up_bound_x,up_bound_y) && !game_state[up_bound_x][up_bound_y].nil? && game_state[up_bound_x][up_bound_y].color != piece.color
 				possible_moves[up_bound_x][up_bound_y] = true
 			end
 		when :knight
@@ -255,7 +267,7 @@ class Board
 				for j in -2..2
 					if i.abs + j.abs == 3
 						if on_board?(x-1-i,y-1-j)
-							if @state[x-1-i][y-1-j].nil? || @state[x-1-i][y-1-j].color != piece.color
+							if game_state[x-1-i][y-1-j].nil? || game_state[x-1-i][y-1-j].color != piece.color
 								possible_moves[x-1-i][y-1-j] = true
 							end
 						end
@@ -267,7 +279,7 @@ class Board
 			for i in -1..1
 				for j in -1..1
 					if on_board?(x-1-i,y-1-j)
-						if @state[x-1-i][y-1-j].nil? || @state[x-1-i][y-1-j].color != piece.color
+						if game_state[x-1-i][y-1-j].nil? || game_state[x-1-i][y-1-j].color != piece.color
 							possible_moves[x-1-i][y-1-j] = true
 						end
 					end
@@ -278,35 +290,35 @@ class Board
 			#up-down
 			up_bound = y
 			low_bound = y-2
-			while up_bound <= 7 && @state[x-1][up_bound].nil?
+			while up_bound <= 7 && game_state[x-1][up_bound].nil?
 				possible_moves[x-1][up_bound] = true
 				up_bound += 1
 			end
-			if on_board?(x-1,up_bound) && !@state[x-1][up_bound].nil? && @state[x-1][up_bound].color != piece.color
+			if on_board?(x-1,up_bound) && !game_state[x-1][up_bound].nil? && game_state[x-1][up_bound].color != piece.color
 				possible_moves[x-1][up_bound] = true
 			end
-			while low_bound >= 0 && @state[x-1][low_bound].nil?
+			while low_bound >= 0 && game_state[x-1][low_bound].nil?
 				possible_moves[x-1][low_bound] = true
 				low_bound -= 1
 			end
-			if on_board?(x-1,low_bound) && !@state[x-1][low_bound].nil? && @state[x-1][low_bound].color != piece.color
+			if on_board?(x-1,low_bound) && !game_state[x-1][low_bound].nil? && game_state[x-1][low_bound].color != piece.color
 				possible_moves[x-1][low_bound] = true
 			end
 			#left-right
 			left_bound = x - 2
 			right_bound = x
-			while right_bound <= 7 && @state[right_bound][y-1].nil?
+			while right_bound <= 7 && game_state[right_bound][y-1].nil?
 				possible_moves[right_bound][y-1] = true
 				right_bound += 1
 			end
-			if on_board?(right_bound,y-1) && !@state[right_bound][y-1].nil? && @state[right_bound][y-1].color != piece.color
+			if on_board?(right_bound,y-1) && !game_state[right_bound][y-1].nil? && game_state[right_bound][y-1].color != piece.color
 				possible_moves[right_bound][y-1] = true
 			end
-			while left_bound >= 0 && @state[left_bound][y-1].nil?
+			while left_bound >= 0 && game_state[left_bound][y-1].nil?
 				possible_moves[left_bound][y-1] = true
 				left_bound -= 1
 			end
-			if on_board?(left_bound,y-1) && !@state[left_bound][y-1].nil? && @state[left_bound][y-1].color != piece.color
+			if on_board?(left_bound,y-1) && !game_state[left_bound][y-1].nil? && game_state[left_bound][y-1].color != piece.color
 				possible_moves[left_bound][y-1] = true
 			end
 
@@ -314,42 +326,42 @@ class Board
 			low_bound_y = y-2
 			up_bound_x = x
 			low_bound_x = x-2
-			while low_bound_x >= 0 && up_bound_y <= 7  && @state[low_bound_x][up_bound_y].nil?
+			while low_bound_x >= 0 && up_bound_y <= 7  && game_state[low_bound_x][up_bound_y].nil?
 				possible_moves[low_bound_x][up_bound_y] = true
 				low_bound_x += -1
 				up_bound_y += 1
 			end
-			if on_board?(low_bound_x,up_bound_y) && !@state[low_bound_x][up_bound_y].nil? && @state[low_bound_x][up_bound_y].color != piece.color
+			if on_board?(low_bound_x,up_bound_y) && !game_state[low_bound_x][up_bound_y].nil? && game_state[low_bound_x][up_bound_y].color != piece.color
 				possible_moves[low_bound_x][up_bound_y] = true
 			end
 			low_bound_x = x-2
 			up_bound_y = y
-			while low_bound_x >= 0 && low_bound_y >= 0  && @state[low_bound_x][low_bound_y].nil?
+			while low_bound_x >= 0 && low_bound_y >= 0  && game_state[low_bound_x][low_bound_y].nil?
 				possible_moves[low_bound_x][low_bound_y] = true
 				low_bound_x += -1
 				low_bound_y += -1
 			end
-			if on_board?(low_bound_x,low_bound_y) && !@state[low_bound_x][low_bound_y].nil? && @state[low_bound_x][low_bound_y].color != piece.color
+			if on_board?(low_bound_x,low_bound_y) && !game_state[low_bound_x][low_bound_y].nil? && game_state[low_bound_x][low_bound_y].color != piece.color
 				possible_moves[low_bound_x][low_bound_y] = true
 			end
 			up_bound_x = x
 			low_bound_y = y-2
-			while up_bound_x <= 7 && low_bound_y >= 0 && @state[up_bound_x][low_bound_y].nil?
+			while up_bound_x <= 7 && low_bound_y >= 0 && game_state[up_bound_x][low_bound_y].nil?
 				possible_moves[up_bound_x][low_bound_y] = true
 				up_bound_x += 1
 				low_bound_y += -1
 			end
-			if on_board?(up_bound_x,low_bound_y) && !@state[up_bound_x][low_bound_y].nil? && @state[up_bound_x][low_bound_y].color != piece.color
+			if on_board?(up_bound_x,low_bound_y) && !game_state[up_bound_x][low_bound_y].nil? && game_state[up_bound_x][low_bound_y].color != piece.color
 				possible_moves[up_bound_x][low_bound_y] = true
 			end
 			up_bound_x = x
 			up_bound_y = y
-			while up_bound_x <= 7 && up_bound_y <= 7 && @state[up_bound_x][up_bound_y].nil?
+			while up_bound_x <= 7 && up_bound_y <= 7 && game_state[up_bound_x][up_bound_y].nil?
 				possible_moves[up_bound_x][up_bound_y] = true
 				up_bound_x += 1
 				up_bound_y += 1
 			end
-			if on_board?(up_bound_x,up_bound_y) && !@state[up_bound_x][up_bound_y].nil? && @state[up_bound_x][up_bound_y].color != piece.color
+			if on_board?(up_bound_x,up_bound_y) && !game_state[up_bound_x][up_bound_y].nil? && game_state[up_bound_x][up_bound_y].color != piece.color
 				possible_moves[up_bound_x][up_bound_y] = true
 			end
 		else
@@ -368,11 +380,11 @@ class Board
 		new_moves
 	end
 
-	def legal_moves(player)
+	def legal_moves(player,game_state)
 		legal = empty_state
 		player.pieces.each { |piece|
 			if piece.status == :alive
-				legal = merge_legal_moves(legal,legal_move(piece))
+				legal = merge_legal_moves(legal,legal_move(piece,game_state))
 			end
 		}
 		legal
@@ -396,42 +408,56 @@ class Board
 	end
 
 	#throws an error for invalid moves
-	def move_piece(c1,c2)
+	def move_piece(game_state,c1,c2)
 		raise ArgumentError, "Invalid coordinates" if !on_board?(c1.x-1,c1.y-1) || !on_board?(c2.x-1,c2.y-1)
-		piece = @state[c1.x-1][c1.y-1]
+		piece = game_state[c1.x-1][c1.y-1]
 		if piece.nil?
 			raise ArgumentError, "no piece to move"
 		else
-			if legal_move(piece)[c2.x-1][c2.y-1]
+			if legal_move(piece, game_state)[c2.x-1][c2.y-1]
 				#Capture piece
-				if !@state[c2.x-1][c2.y-1].nil?
-					@state[c2.x-1][c2.y-1].status = :captured
+				if !game_state[c2.x-1][c2.y-1].nil?
+					game_state[c2.x-1][c2.y-1].status = :captured
 				end
 				#Move piece
-				old_piece = @state[c2.x-1][c2.y-1]
-				@state[c2.x-1][c2.y-1] = piece
+				old_piece = game_state[c2.x-1][c2.y-1]
+				game_state[c2.x-1][c2.y-1] = piece
 				piece.position = Coord.new(c2.x,c2.y)
-				@state[c1.x-1][c1.y-1] = nil
+				game_state[c1.x-1][c1.y-1] = nil
 				#if under check, reverse moves and raise ArgumentError
+				black_pieces = []
+				white_pieces = []
+				game_state.each{|col|
+					col.each {|e|
+						if !e.nil?
+							black_pieces << e if e.color == :black
+							white_pieces << e if e.color == :white
+						end
+					}
+				}
+				black_player = Player.new(:black,"Black",black_pieces)
+				white_player = Player.new(:white,"White",white_pieces)
 				if piece.color == :white
-					pos = @white_player.pieces.select{|piece| piece.name == :king}.first.position
-					if legal_moves(@black_player)[pos.x-1][pos.y-1] == true
+					pos = white_player.pieces.select{|piece| piece.name == :king}.first.position
+					#ERROR is here. the hypothetical state pieces have different pointers so the legal moves here
+					#is checking for legal moves from the actual game state.
+					if legal_moves(black_player,game_state)[pos.x-1][pos.y-1] == true
 						if !old_piece.nil?
 							old_piece.status = :alive
 						end
-						@state[c2.x-1][c2.y-1] = old_piece
-						@state[c1.x-1][c1.y-1] = piece
+						game_state[c2.x-1][c2.y-1] = old_piece
+						game_state[c1.x-1][c1.y-1] = piece
 						piece.position = Coord.new(c1.x,c1.y)
 						raise ArgumentError, "Can't do that. You're under check!"
 					end
 				else
 					pos = @black_player.pieces.select{|piece| piece.name == :king}.first.position
-					if legal_moves(@white_player)[pos.x-1][pos.y-1] == true
+					if legal_moves(@white_player,game_state)[pos.x-1][pos.y-1] == true
 						if !old_piece.nil?
 							old_piece.status = :alive
 						end
-						@state[c2.x-1][c2.y-1] = old_piece
-						@state[c1.x-1][c1.y-1] = piece
+						game_state[c2.x-1][c2.y-1] = old_piece
+						game_state[c1.x-1][c1.y-1] = piece
 						piece.position = Coord.new(c1.x,c1.y)
 						raise ArgumentError, "Can't do that. You're under check!"
 					end
@@ -483,9 +509,14 @@ class Game
 		if input == 1
 			new_game
 		elsif input == 2
-			puts "Enter file name to load"
-			to_load = gets.chomp
-			load_game(to_load)
+			begin
+				puts "Enter file name to load"
+				to_load = gets.chomp
+				load_game(to_load)
+			rescue
+				puts "Invalid file name."
+				retry
+			end
 		else
 			puts "Invalid input. Try again."
 			start_game
@@ -515,6 +546,7 @@ class Game
 			raise ArgumentError, "Invalid piece. try again"
 		else
 			#show legal move highlighting
+			@board.print_state(@board.state[c1.x-1][c1.y-1])
 			c1
 		end
 	end
@@ -525,10 +557,10 @@ class Game
 		@other_player = t
 	end
 
-	def check?
+	def check?(game_state)
 		#legal moves of other player encompass the current player's king's position
 		pos = @current_player.pieces.select{|piece| piece.name == :king}.first.position
-		legal_moves = @board.legal_moves(@other_player)
+		legal_moves = @board.legal_moves(@other_player,game_state)
 		if legal_moves[pos.x-1][pos.y-1] == true then
 			@current_player.check = true
 			true
@@ -539,43 +571,79 @@ class Game
 	end
 	#wrong... this also needs to check if there is a way to remove the threat...
 	def checkmate?
-		check = check?
-		return false if !check
-		threatened_space = @board.legal_moves(@other_player)
+		# check = check?(@board.state)
+		# return false if !check
+		threatened_space = @board.legal_moves(@other_player,@board.state)
 		king = @current_player.pieces.select{|piece| piece.name == :king}.first
-		king_moves = @board.legal_move(king)
+		king_moves = @board.legal_move(king,@board.state)
 		overlap = Array.new(@board.empty_state)
 		for i in 0..7
 			for j in 0..7
 				overlap[i][j] = king_moves[i][j] && threatened_space[i][j]
 			end
 		end
-		possible_moves = @board.legal_moves(@current_player)
+		king_stuck = overlap == king_moves
+		return false if !king_stuck
+
 		threatening_pieces = []
 		@other_player.pieces.each {|piece|
-			if legal_move(piece)[king.position.x-1][king.position.y-1]
+			if @board.legal_move(piece,@board.state)[king.position.x-1][king.position.y-1]
 				threatening_pieces << piece
 			end
 		}
-		#if more than one threatening piece then checkmate? No, not if king can remove one of the threats.
-		#Double check: Only king can move/capture
-
+		if threatening_pieces.length == 0
+			return false
 		#Single check: Any other piece can move/capture
-
-		#Methodology: Find piece(s) that can capture threatening piece(s), create hypothetical states, and
-		#see if king is still in check
-
-		#Probably need to change check to take in an argument of state.
-		if overlap == king_moves && check
-			true
+		elsif threatening_pieces.length == 1
+			threatening_piece = threatening_pieces.pop
+			pos = threatening_piece.position
+			defending_pieces = []
+			@current_player.pieces.each {|piece|
+			if @board.legal_move(piece,@board.state)[pos.x-1][pos.y-1]
+				defending_pieces << piece
+			end
+			}
+			# defending_pieces.each {|piece|
+			# 	puts "#{piece.name}. #{piece.position.x},#{piece.position.y}"
+			# }
+			#loop over defending pieces and check if there is one that can remove the threatening piece
+			#without leaving the king in check.
+			not_savable = true
+			while not_savable && !defending_pieces.empty?
+				piece = defending_pieces.pop
+				hypothetical_state = Marshal.load(Marshal.dump(@board.state))
+				begin
+					#if this move leaves the king in check, an error is thrown.
+					# puts "#{threatening_piece.name}. #{threatening_piece.position.x},#{threatening_piece.position.y}"
+					@board.move_piece(hypothetical_state,piece.position,threatening_piece.position)
+					#if not, the king can be saved.
+				  return false
+				rescue
+				end
+			end
+			return not_savable
+		#Double check (>1): Only king can move/capture
 		else
-			false
+			king = @current_player.pieces.select{|piece| piece.name == :king}
+			threatening_pieces.each{|threat|
+				hypothetical_state = Marshal.load(Marshal.dump(@board.state))
+				if legal_move(king)[threat.position.x-1][threat.position.y-1]
+					begin
+						#if this move leaves the king in check, an error is thrown.
+						@board.move_piece(hypothetical_state,king.position,threat.position)
+						#if not, the king can be saved.
+						return false
+					rescue
+					end
+				end
+			}
+			return true
 		end
 	end
 
 	def user_command
 		begin
-			puts "Select piece to move or SAVE game"
+			puts "Enter coordinate or SAVE game"
 			input = gets.downcase.chomp
 			if input == "save"
 				save_game
@@ -585,10 +653,11 @@ class Game
 				puts "Choose a coordinate to move to."
 				input2 = gets.downcase.chomp
 				c2 = choose_coord(input2)
-				@board.move_piece(c1,c2)
+				@board.move_piece(@board.state,c1,c2)
 			end
 		rescue ArgumentError => e
 			puts e.message
+			@board.print_state
 			retry
 		end
 		input
@@ -602,7 +671,7 @@ class Game
 				puts "Game over! #{@other_player.name} wins."
 				break
 			end
-			puts "You're under check!" if check?
+			puts "You're under check!" if check?(@board.state)
 			puts "#{@current_player.name}'s turn:"
 			cmd = user_command
 			break if cmd == "save"
